@@ -1,39 +1,49 @@
--- Day 5 schema — run this once in the Supabase SQL Editor.
--- It resets to a clean slate (drops the previous experiment), creates the
--- tables in the shape the guide uses (votes as ROWS, not a column), adds the
--- indexes, and seeds 25 questions so pagination and search have volume.
-
--- ── reset ──────────────────────────────────────────────────────────────────
+drop table if exists poll_votes;
+drop table if exists poll_options;
+drop table if exists polls;
 drop table if exists votes;
 drop table if exists questions cascade;
-drop function if exists increment_question_votes(uuid);
-
--- ── questions (Feature 1) ────────────────────────────────────────────────────
 create table questions (
-  id          uuid primary key default gen_random_uuid(),
-  body        text not null,
-  author      text,
-  created_at  timestamptz default now()
+  id uuid primary key default gen_random_uuid(),
+  body text not null,
+  author text,
+  created_at timestamptz default now()
 );
-
--- ── votes (Feature 3) ────────────────────────────────────────────────────────
--- one row per vote; the FK guarantees a vote points at a real question, and
--- the unique constraint enforces one vote per voter per question.
 create table votes (
-  id           uuid primary key default gen_random_uuid(),
-  question_id  uuid not null references questions(id) on delete cascade,
-  voter_id     text not null,
-  created_at   timestamptz default now(),
+  id uuid primary key default gen_random_uuid(),
+  question_id uuid not null references questions(id) on delete cascade,
+  voter_id text not null,
+  created_at timestamptz default now(),
   unique (question_id, voter_id)
 );
-
-create index votes_question_id_idx on votes (question_id);
-
--- ── full-text search index (Feature 5) ───────────────────────────────────────
--- GIN = Generalized INverted index: the word → documents map behind search.
-create index questions_fts_idx on questions using gin (to_tsvector('english', body));
-
--- ── seed (~25 questions, spaced out in time so ordering is stable) ───────────
+create index votes_question_id_idx on votes(question_id);
+create index questions_fts_idx
+on questions
+using gin (to_tsvector('english', body));
+create table polls (
+  id uuid primary key default gen_random_uuid(),
+  question text not null,
+  description text,
+  created_at timestamptz default now(),
+  closed_at timestamptz
+);
+create table poll_options (
+  id uuid primary key default gen_random_uuid(),
+  poll_id uuid not null references polls(id) on delete cascade,
+  option_text text not null,
+  created_at timestamptz default now()
+);
+create table poll_votes (
+  id uuid primary key default gen_random_uuid(),
+  poll_option_id uuid not null references poll_options(id) on delete cascade,
+  voter_id text not null,
+  created_at timestamptz default now(),
+  unique (poll_option_id, voter_id)
+);
+create index poll_votes_poll_option_id_idx
+on poll_votes(poll_option_id);
+create index poll_options_poll_id_idx
+on poll_options(poll_id);
 insert into questions (body, author, created_at)
 select body, author, now() - (n || ' minutes')::interval
 from (
@@ -64,3 +74,105 @@ from (
     (24, 'How do I scale reads with replicas?', 'Ravi'),
     (25, 'What''s the best way to add auth later?', 'Priya')
 ) as seed(n, body, author);
+insert into polls (question, description)
+values
+(
+  'What is your preferred database?',
+  'Help us understand which database you use most'
+),
+(
+  'Best deployment platform?',
+  'Where do you deploy your apps?'
+);
+insert into poll_options (poll_id, option_text)
+values
+(
+  (select id from polls where question = 'What is your preferred database?' limit 1),
+  'PostgreSQL'
+),
+(
+  (select id from polls where question = 'What is your preferred database?' limit 1),
+  'MongoDB'
+),
+(
+  (select id from polls where question = 'What is your preferred database?' limit 1),
+  'MySQL'
+),
+(
+  (select id from polls where question = 'What is your preferred database?' limit 1),
+  'Firebase'
+),
+(
+  (select id from polls where question = 'Best deployment platform?' limit 1),
+  'Vercel'
+),
+(
+  (select id from polls where question = 'Best deployment platform?' limit 1),
+  'Netlify'
+),
+(
+  (select id from polls where question = 'Best deployment platform?' limit 1),
+  'AWS'
+),
+(
+  (select id from polls where question = 'Best deployment platform?' limit 1),
+  'Azure'
+);
+insert into poll_votes (poll_option_id, voter_id)
+values
+(
+  (select id from poll_options where option_text = 'PostgreSQL' limit 1),
+  'voter_db_1'
+),
+(
+  (select id from poll_options where option_text = 'PostgreSQL' limit 1),
+  'voter_db_2'
+),
+(
+  (select id from poll_options where option_text = 'PostgreSQL' limit 1),
+  'voter_db_3'
+),
+(
+  (select id from poll_options where option_text = 'MongoDB' limit 1),
+  'voter_db_4'
+),
+(
+  (select id from poll_options where option_text = 'MongoDB' limit 1),
+  'voter_db_5'
+),
+(
+  (select id from poll_options where option_text = 'MySQL' limit 1),
+  'voter_db_6'
+),
+(
+  (select id from poll_options where option_text = 'Vercel' limit 1),
+  'voter_plat_1'
+),
+(
+  (select id from poll_options where option_text = 'Vercel' limit 1),
+  'voter_plat_2'
+),
+(
+  (select id from poll_options where option_text = 'Vercel' limit 1),
+  'voter_plat_3'
+),
+(
+  (select id from poll_options where option_text = 'Vercel' limit 1),
+  'voter_plat_4'
+),
+(
+  (select id from poll_options where option_text = 'Netlify' limit 1),
+  'voter_plat_5'
+),
+(
+  (select id from poll_options where option_text = 'Netlify' limit 1),
+  'voter_plat_6'
+),
+(
+  (select id from poll_options where option_text = 'AWS' limit 1),
+  'voter_plat_7'
+),
+(
+  (select id from poll_options where option_text = 'Azure' limit 1),
+  'voter_plat_8'
+);
