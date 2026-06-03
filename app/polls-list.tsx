@@ -23,7 +23,10 @@ export default function PollsList() {
   const [loading, setLoading] = useState(true);
   const [votedPolls, setVotedPolls] = useState<Set<string>>(new Set());
   const [hydrated, setHydrated] = useState(false);
-
+  const [question, setQuestion] = useState("");
+  const [description, setDescription] = useState("");
+  const [options, setOptions] = useState(["", ""]);
+  const [creating, setCreating] = useState(false);
   useEffect(() => setHydrated(true), []);
 
   useEffect(() => {
@@ -49,15 +52,69 @@ export default function PollsList() {
     }
   }
 
+  function updateOption(index: number, value: string) {
+    const updated = [...options];
+    updated[index] = value;
+    setOptions(updated);
+  }
+
+  function addOption() {
+    setOptions([...options, ""]);
+  }
+
+  async function handleCreatePoll() {
+    try {
+      setCreating(true);
+
+      const filteredOptions = options.filter(
+        (opt) => opt.trim() !== ""
+      );
+
+      if (!question.trim() || filteredOptions.length < 2) {
+        alert("Enter question and at least 2 options");
+        return;
+      }
+
+      const res = await fetch("/api/polls", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question,
+          description,
+          options: filteredOptions,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create poll");
+      }
+
+      setQuestion("");
+      setDescription("");
+      setOptions(["", ""]);
+
+      await fetchPolls();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create poll");
+    } finally {
+      setCreating(false);
+    }
+  }
+
   async function handleVote(pollId: string, optionId: string) {
     try {
       const res = await fetch("/api/polls/vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-  pollOptionId: optionId,
-  voterId: getVoterId(),
-}),
+          pollOptionId: optionId,
+          voterId: getVoterId(),
+        }),
       });
 
       if (res.status === 409) {
@@ -67,10 +124,10 @@ export default function PollsList() {
 
       const data = await res.json();
 
-if (!res.ok) {
-  console.error(data);
-  throw new Error(data.error || "Vote failed");
-}
+      if (!res.ok) {
+        console.error(data);
+        throw new Error(data.error || "Vote failed");
+      }
 
       setVotedPolls((prev) => new Set([...prev, pollId]));
       await fetchPolls();
@@ -120,11 +177,10 @@ if (!res.ok) {
                         !hasVoted && handleVote(poll.id, option.id)
                       }
                       disabled={hasVoted}
-                      className={`w-full text-left p-3 rounded-lg border transition ${
-                        hasVoted
-                          ? "bg-gray-50 border-gray-200 cursor-default"
-                          : "border-gray-300 hover:border-blue-400 hover:bg-blue-50 cursor-pointer"
-                      }`}
+                      className={`w-full text-left p-3 rounded-lg border transition ${hasVoted
+                        ? "bg-gray-50 border-gray-200 cursor-default"
+                        : "border-gray-300 hover:border-blue-400 hover:bg-blue-50 cursor-pointer"
+                        }`}
                     >
                       <div className="flex justify-between items-center">
                         <span className="font-medium">{option.option_text}</span>
@@ -150,6 +206,54 @@ if (!res.ok) {
             </div>
           );
         })}
+      </div>
+      <div className="border rounded-lg p-4 mb-8 bg-white">
+        <h2 className="text-xl font-bold mb-4">Create New Poll</h2>
+
+        <input
+          type="text"
+          placeholder="Poll question"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          className="w-full border rounded p-2 mb-3"
+        />
+
+        <textarea
+          placeholder="Description (optional)"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full border rounded p-2 mb-3"
+        />
+
+        <div className="space-y-2 mb-3">
+          {options.map((option, index) => (
+            <input
+              key={index}
+              type="text"
+              placeholder={`Option ${index + 1}`}
+              value={option}
+              onChange={(e) =>
+                updateOption(index, e.target.value)
+              }
+              className="w-full border rounded p-2"
+            />
+          ))}
+        </div>
+
+        <button
+          onClick={addOption}
+          className="px-3 py-2 border rounded mr-3"
+        >
+          Add Option
+        </button>
+
+        <button
+          onClick={handleCreatePoll}
+          disabled={creating}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          {creating ? "Creating..." : "Create Poll"}
+        </button>
       </div>
     </div>
   );
