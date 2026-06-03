@@ -76,12 +76,33 @@ export default function QuestionsList({
   }
 
   async function loadMore() {
-    setLoading(true);
-    const res = await fetch(`/api/questions?offset=${questions.length}`);
-    const data = await res.json();
-    setQuestions((qs) => [...qs, ...data.questions]);
-    setHasMore(data.hasMore);
-    setLoading(false);
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        `/api/questions?offset=${questions.length}`
+      );
+
+      const data = await res.json();
+
+      setQuestions((prev) => {
+        const existingIds = new Set(
+          prev.map((q) => q.id)
+        );
+
+        const newQuestions = data.questions.filter(
+          (q: Question) => !existingIds.has(q.id)
+        );
+
+        return [...prev, ...newQuestions];
+      });
+
+      setHasMore(data.hasMore);
+    } catch (error) {
+      console.error("Load more failed:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
