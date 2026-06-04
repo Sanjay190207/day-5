@@ -6,10 +6,11 @@ type QuestionRow = {
   author: string | null;
   created_at: string;
   votes:
-    | {
-        count: number;
-      }[]
-    | null;
+  | {
+    count: number;
+  }[]
+  | null;
+  pinned: boolean;
 };
 
 export async function getQuestionsPage(
@@ -18,9 +19,9 @@ export async function getQuestionsPage(
 ) {
   const { data, error } = await supabase
     .from("questions")
-    .select("id, body, author, created_at, votes(count)")
+    .select("id, body, author, created_at, votes(count),pinned")
     .order("created_at", { ascending: false })
-    .range(offset, offset + limit-1);
+    .range(offset, offset + limit - 1);
 
   if (error) {
     throw new Error(error.message);
@@ -35,6 +36,7 @@ export async function getQuestionsPage(
       body: q.body,
       author: q.author,
       votes: q.votes?.[0]?.count ?? 0,
+      pinned: q.pinned,
     }));
 
   const hasMore = rows.length == limit;
@@ -51,7 +53,7 @@ export async function searchQuestions(
 ) {
   const { data, error } = await supabase
     .from("questions")
-    .select("id, body, author, created_at, votes(count)")
+    .select("id, body, author, created_at, votes(count),pinned")
     .textSearch("body", q, {
       type: "websearch",
       config: "english",
@@ -70,5 +72,6 @@ export async function searchQuestions(
     body: row.body,
     author: row.author,
     votes: row.votes?.[0]?.count ?? 0,
+    pinned: row.pinned,
   }));
 }

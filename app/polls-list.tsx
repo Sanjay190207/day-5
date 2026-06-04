@@ -22,12 +22,12 @@ export default function PollsList() {
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
   const [votedPolls, setVotedPolls] = useState<Set<string>>(new Set());
-  const [hydrated, setHydrated] = useState(false);
+  //const [hydrated, setHydrated] = useState(false);
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [creating, setCreating] = useState(false);
-  useEffect(() => setHydrated(true), []);
+  // useEffect(() => setHydrated(true), []);
 
   useEffect(() => {
     fetchPolls();
@@ -136,7 +136,7 @@ export default function PollsList() {
     }
   }
 
-  if (!hydrated) return <div className="p-4">Loading polls...</div>;
+  //if (!hydrated) return <div className="p-4">Loading polls...</div>;
 
   if (loading) return <div className="p-4">Loading polls...</div>;
 
