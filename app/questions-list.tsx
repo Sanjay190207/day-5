@@ -209,92 +209,143 @@ export default function QuestionsList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-100 via-sky-200 to-blue-300">
+      <div className="mx-auto max-w-5xl space-y-8 px-6 py-10">
 
-      {/* Ask Question */}
-      <div className="flex gap-2">
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Ask a question…"
-          className="flex-1 rounded-md border px-3 py-2"
-        />
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent">
+            Live Questions
+          </h1>
 
-        <button
-          onClick={refineQuestion}
-          disabled={improving}
-          className="rounded-md border px-4 py-2"
-        >
-          {improving ? "Improving..." : "AI Refine"}
-        </button>
+          <p className="text-gray-500">
+            Ask questions, vote for the best ones, and pin important discussions.
+          </p>
+        </div>
 
-        <button
-          onClick={submit}
-          className="rounded-md border px-4 py-2"
-        >
-          Ask
-        </button>
+        {/* Ask Question Box */}
+        <div className="rounded-2xl border bg-white p-4 shadow-sm">
+          <div className="flex flex-col gap-3 md:flex-row">
+
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="Ask your question..."
+              className="flex-1 rounded-xl border px-4 py-3 outline-none transition focus:border-black"
+            />
+
+            <div className="flex gap-2">
+
+              <button
+                onClick={refineQuestion}
+                disabled={improving}
+                className="rounded-xl border px-4 py-3 font-medium transition hover:bg-gray-100 disabled:opacity-50"
+              >
+                {improving ? "Improving..." : "✨ AI Refine"}
+              </button>
+
+              <button
+                onClick={submit}
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 px-5 py-3 font-medium text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+              >
+                Ask
+              </button>
+
+            </div>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search questions..."
+            className="w-full rounded-2xl border bg-white px-4 py-3 shadow-sm outline-none transition focus:border-black"
+          />
+        </div>
+
+        {/* Questions List */}
+        <ul className="space-y-4">
+
+          {questions.map((q) => (
+            <li
+              key={q.id}
+              className={`group flex items-center gap-4 rounded-2xl border p-4 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${q.pinned
+                ? "border-yellow-400 bg-yellow-50"
+                : "bg-white/60 backdrop-blur-xl border-white/40"
+                }`}
+            >
+
+              {/* Vote Section */}
+              <div className="flex flex-col items-center gap-2">
+
+                <button
+                  onClick={() => vote(q.id, "up")}
+                  className="rounded-lg border bg-white px-3 py-1 transition-all duration-200 hover:scale-110 hover:bg-green-100 active:scale-95"
+                >
+                  ▲
+                </button>
+
+                <span className="text-lg font-semibold">
+                  {q.votes}
+                </span>
+
+                <button
+                  onClick={() => vote(q.id, "down")}
+                  className="rounded-lg border bg-white px-3 py-1 transition-all duration-200 hover:scale-110 hover:bg-red-100 active:scale-95"
+                >
+                  ▼
+                </button>
+
+              </div>
+
+              {/* Question Content */}
+              <div className="flex flex-1 items-center justify-between gap-4">
+
+                <div className="space-y-1">
+                  <p className="text-lg font-medium text-gray-900">
+                    {q.body}
+                  </p>
+
+                  {q.author && (
+                    <p className="text-sm text-gray-500">
+                      by {q.author}
+                    </p>
+                  )}
+                </div>
+
+                {/* Pin Button */}
+                <button
+                  onClick={() => togglePin(q.id)}
+                  className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${q.pinned
+                    ? "bg-yellow-400 text-black hover:bg-yellow-300"
+                    : "hover:bg-gray-100"
+                    }`}
+                >
+                  {q.pinned ? "📌 Pinned" : "📌 Pin"}
+                </button>
+
+              </div>
+            </li>
+          ))}
+
+        </ul>
+
+        {/* Load More */}
+        {hasMore && (
+          <div className="flex justify-center">
+            <button
+              onClick={loadMore}
+              disabled={loading}
+              className="rounded-xl border bg-white px-6 py-3 font-medium shadow-sm transition hover:bg-gray-100 disabled:opacity-50"
+            >
+              {loading ? "Loading..." : "Load More"}
+            </button>
+          </div>
+        )}
+
       </div>
-
-      {/* Search */}
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search questions…"
-        className="w-full rounded-md border px-3 py-2"
-      />
-
-      {/* Questions */}
-      <ul className="space-y-3">
-        {questions.map((q) => (
-          <li
-            key={q.id}
-            className="flex items-center gap-3 rounded-lg border p-3"
-          >
-            {/* Votes */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => vote(q.id, "up")}
-                className="rounded-md border px-2 py-1"
-              >
-                ▲
-              </button>
-
-              <span>{q.votes}</span>
-
-              <button
-                onClick={() => vote(q.id, "down")}
-                className="rounded-md border px-2 py-1"
-              >
-                ▼
-              </button>
-            </div>
-
-            {/* Question Body */}
-            <div className="flex items-center gap-3 flex-1 justify-between">
-              <span>{q.body}</span>
-
-              <button
-                onClick={() => togglePin(q.id)}
-                className="rounded-md border px-2 py-1 text-sm"
-              >
-                {q.pinned ? "📌 Unpin" : "📌 Pin"}
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      {/* Load More */}
-      {hasMore && (
-        <button
-          onClick={loadMore}
-          disabled={loading}
-          className="rounded-md border px-4 py-2 disabled:opacity-50"
-        >
-          {loading ? "Loading..." : "Load More"}
-        </button>
-      )}
     </div>
   );
 }
