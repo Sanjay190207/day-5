@@ -149,20 +149,19 @@ export default function PollsList() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#dbeafe,_transparent_30%),radial-gradient(circle_at_bottom_right,_#c7d2fe,_transparent_30%),linear-gradient(to_bottom_right,_#f8fafc,_#e0f2fe,_#eef2ff)] p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="fixed top-0 left-0 w-72 h-72 bg-blue-300 opacity-20 blur-3xl rounded-full -z-10"></div>
 
-        <div className="fixed bottom-0 right-0 w-96 h-96 bg-indigo-300 opacity-20 blur-3xl rounded-full -z-10"></div>
-        {/* Header */}
-        <div className="mb-10 text-center">
-          <h1 className="text-5xl font-extrabold text-gray-800 mb-3">
-            Live Polls
-          </h1>
+      <div className="fixed top-0 left-0 w-72 h-72 bg-blue-300 opacity-20 blur-3xl rounded-full -z-10"></div>
 
-          <p className="text-gray-600 text-lg">
-            Create interactive polls and collect real-time audience feedback
-          </p>
-        </div>
+      <div className="fixed bottom-0 right-0 w-96 h-96 bg-indigo-300 opacity-20 blur-3xl rounded-full -z-10"></div>
+      {/* Header */}
+      <div className="mb-10 text-center">
+        <h1 className="text-5xl font-extrabold text-gray-800 mb-3">
+          Live Polls
+        </h1>
+
+        <p className="text-gray-600 text-lg">
+          Create interactive polls and collect real-time audience feedback
+        </p>
 
         {/* Polls */}
         <div className="space-y-8">
@@ -303,6 +302,6 @@ export default function PollsList() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

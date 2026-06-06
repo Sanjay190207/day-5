@@ -14,10 +14,6 @@ export default async function Page() {
   return (
     <main className="mx-auto max-w-2xl p-6">
       <h1 className="mb-8 text-3xl font-bold">Live Q&A</h1>
-      
-      <section className="mb-8">
-        <PollsList />
-      </section>
 
       <section>
         <h2 className="text-2xl font-bold mb-4">Questions</h2>
