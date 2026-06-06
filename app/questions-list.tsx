@@ -264,7 +264,15 @@ export default function QuestionsList({
             className="w-full rounded-2xl border bg-white px-4 py-3 shadow-sm outline-none transition focus:border-black"
           />
         </div>
+        <div className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-2 shadow-sm backdrop-blur-lg">
+          <h2 className="text-sm font-semibold text-gray-700">
+            Total Questions
+          </h2>
 
+          <div className="rounded-full bg-blue-600 px-3 py-1 text-sm font-semibold text-white">
+            {questions.length}
+          </div>
+        </div>
         {/* Questions List */}
         <ul className="space-y-4">
 
