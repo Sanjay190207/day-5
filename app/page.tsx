@@ -1,5 +1,4 @@
 import QuestionsList from "./questions-list";
-import PollsList from "./polls-list";
 import { getQuestionsPage } from "@/lib/questions";
 
 // Render on every request (don't cache/prerender) so new questions show up.

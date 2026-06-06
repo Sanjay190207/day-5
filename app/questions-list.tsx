@@ -8,6 +8,7 @@ type Question = {
   body: string;
   author: string | null;
   votes: number;
+  created_at: string,
   pinned?: boolean;
 };
 
@@ -23,6 +24,43 @@ function sortQuestions(list: Question[]) {
   });
 }
 
+function timeAgo(dateString: string) {
+  const seconds = Math.floor(
+    (new Date().getTime() - new Date(dateString).getTime()) / 1000
+  );
+
+  let interval = seconds / 31536000;
+
+  if (interval >= 1) {
+    return Math.floor(interval) + "y ago";
+  }
+
+  interval = seconds / 2592000;
+
+  if (interval >= 1) {
+    return Math.floor(interval) + "mo ago";
+  }
+
+  interval = seconds / 86400;
+
+  if (interval >= 1) {
+    return Math.floor(interval) + "d ago";
+  }
+
+  interval = seconds / 3600;
+
+  if (interval >= 1) {
+    return Math.floor(interval) + "h ago";
+  }
+
+  interval = seconds / 60;
+
+  if (interval >= 1) {
+    return Math.floor(interval) + "m ago";
+  }
+
+  return "Just now";
+}
 export default function QuestionsList({
   initialQuestions,
   initialHasMore,
@@ -316,11 +354,13 @@ export default function QuestionsList({
                     {q.body}
                   </p>
 
-                  {q.author && (
-                    <p className="text-sm text-gray-500">
-                      by {q.author}
-                    </p>
-                  )}
+                  <div className="flex items-center gap-3 text-sm text-gray-500">
+                    {q.author && (
+                      <span>by {q.author}</span>
+                    )}
+
+                    <span>{timeAgo(q.created_at)}</span>
+                  </div>
                 </div>
 
                 {/* Pin Button */}
