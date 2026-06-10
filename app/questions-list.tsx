@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getVoterId } from "@/lib/voter";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/auth";
+
 
 type Question = {
   id: string;
@@ -79,6 +81,29 @@ export default function QuestionsList({
 
   const [improving, setImproving] = useState(false);
 
+  const [userEmail, setUserEmail] = useState("");
+  const [userId, setUserId] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    async function getUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      setUserEmail( user.user_metadata?.name || user.email || "" );
+      setUserId(user.id);
+    }
+
+    getUser();
+  }, [router]);
+
+
   // Search with debounce
   useEffect(() => {
     const id = setTimeout(async () => {
@@ -123,9 +148,18 @@ export default function QuestionsList({
     }
   }
 
+  async function logout() {
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
   // Submit question
   async function submit() {
     if (!draft.trim()) return;
+
+    if (!userEmail) {
+      alert("Please login first");
+      return;
+    }
 
     const res = await fetch("/api/questions", {
       method: "POST",
@@ -134,6 +168,7 @@ export default function QuestionsList({
       },
       body: JSON.stringify({
         body: draft,
+        author: userEmail,
       }),
     });
 
@@ -156,13 +191,17 @@ export default function QuestionsList({
   // Upvote / Downvote
   async function vote(id: string, type: "up" | "down") {
     try {
+      if (!userId) {
+        alert("Please login to vote");
+        return;
+      }
       const res = await fetch(`/api/questions/${id}/vote`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          voterId: getVoterId(),
+          voterId: userId,
           type,
         }),
       });
@@ -249,6 +288,26 @@ export default function QuestionsList({
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-100 via-sky-200 to-blue-300">
       <div className="mx-auto max-w-5xl space-y-8 px-6 py-10">
+
+        <div className="flex items-center justify-between rounded-xl bg-white p-4 shadow">
+          <div>
+            <p className="text-sm text-gray-500">
+              Logged in as
+            </p>
+
+            <p className="font-semibold">
+              {userEmail}
+            </p>
+          </div>
+
+          <button
+            onClick={logout}
+            className="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+          >
+            Logout
+          </button>
+        </div>
+
 
         {/* Header */}
         <div className="space-y-2">
